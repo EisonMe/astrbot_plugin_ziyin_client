@@ -1,0 +1,11 @@
+name: astrbot_plugin_ziyin_client
+display_name: 紫音 Windows 远程客户端
+short_desc: 通过安全 LAN API 连接紫音 Windows 客户端
+desc: 通过已认证的 LAN/VPN API 连接紫音 Windows 远程客户端，支持健康检查、任务管理和受控文件/桌面操作。
+version: 0.1.0
+author: ZiYin
+repo: https://github.com/EisonMe/astrbot_plugin_ziyin_client
+astrbot_version: ">=4.20.0"
+support_platforms:
+  - aiocqhttp
+  - telegram

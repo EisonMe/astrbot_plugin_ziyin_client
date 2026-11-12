@@ -1,0 +1,96 @@
+{
+  "enabled": {
+    "description": "启用插件",
+    "type": "bool",
+    "default": true
+  },
+  "base_url": {
+    "description": "客户端地址",
+    "type": "string",
+    "default": "",
+    "hint": "请填远程电脑的 LAN/VPN 地址，例如 https://192.168.1.100:17643；不要用 127.0.0.1 或 localhost，除非 AstrBot 与客户端在同一台电脑。形如 https://192.168.1.100:17643，必须带协议和端口，不要带路径。WebUI「接入」页可直接复制这一行。"
+  },
+  "api_key": {
+    "description": "API 密钥",
+    "type": "string",
+    "default": "",
+    "secret": true,
+    "hint": "在客户端托盘右键「查看 API 密钥」，或安装时生成的密钥文件。只用 Bearer 头发送，不写入 URL，不写入日志。"
+  },
+  "ca_file": {
+    "description": "服务端证书文件",
+    "type": "string",
+    "default": "",
+    "hint": "把客户端安装目录的 server.cer 导出为 PEM 后填绝对路径。留空则使用系统信任库。"
+  },
+  "pin_sha256": {
+    "description": "证书指纹（SHA256）",
+    "type": "string",
+    "default": "",
+    "hint": "未配置 ca_file 时可用指纹固定证书，格式 AB:CD:... 或 64 位十六进制。填了指纹就不再校验主机名，只认这个证书。"
+  },
+  "allow_insecure_http": {
+    "description": "允许明文 HTTP",
+    "type": "bool",
+    "default": false,
+    "hint": "仅在明确选择 -TrustedLanHttp 的可信隔离局域网里打开。密钥、命令和输出都可能被监听。"
+  },
+  "request_timeout": {
+    "description": "请求超时（秒）",
+    "type": "int",
+    "default": 30,
+    "slider": {
+      "min": 5,
+      "max": 180,
+      "step": 5
+    }
+  },
+  "run_wait_seconds": {
+    "description": "提交任务后的等待时间（秒）",
+    "type": "int",
+    "default": 15,
+    "slider": {
+      "min": 0,
+      "max": 30,
+      "step": 1
+    },
+    "hint": "先等这么久再返回结果；超时仍未结束就返回任务 ID，后续用查询工具跟进。首次 SYSTEM PowerShell 启动可能较慢。"
+  },
+  "allow_group": {
+    "description": "允许群聊使用",
+    "type": "bool",
+    "default": false,
+    "hint": "关闭时仅私聊可调用。命令以高权限服务账户执行，群聊放开等于把电脑交给群里所有人。"
+  },
+  "allowed_users": {
+    "description": "额外允许的调用者",
+    "type": "list",
+    "items": {
+      "type": "string"
+    },
+    "default": [],
+    "hint": "填 platform:user_id，例如 aiocqhttp:123456。管理员身份默认始终允许。"
+  },
+  "allow_desktop_control": {
+    "description": "允许桌面控制",
+    "type": "bool",
+    "default": false,
+    "hint": "仍需在本机托盘手动授权。不支持锁屏、登录界面、UAC 安全桌面和 RDP 会话。"
+  },
+  "allow_file_write": {
+    "description": "允许文件写入和删除",
+    "type": "bool",
+    "default": false,
+    "hint": "关闭时只能列目录和下载。上传会覆盖同名文件，删除不可恢复。"
+  },
+  "max_output_chars": {
+    "description": "单次返回的最大字符数",
+    "type": "int",
+    "default": 4000,
+    "slider": {
+      "min": 500,
+      "max": 20000,
+      "step": 500
+    }
+  }
+}
