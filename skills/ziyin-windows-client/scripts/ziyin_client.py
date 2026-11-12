@@ -6,7 +6,7 @@ import ssl
 import sys
 from urllib.error import HTTPError, URLError
 from urllib.parse import quote, urlencode, urlsplit
-from urllib.request import HTTPRedirectHandler, HTTPSHandler, Request, build_opener
+from urllib.request import HTTPHandler, HTTPRedirectHandler, HTTPSHandler, Request, build_opener
 
 
 class NoRedirect(HTTPRedirectHandler):
@@ -24,17 +24,22 @@ def main() -> int:
         return 2
     try:
         parsed = urlsplit(base)
-        valid = (parsed.scheme == "https" and parsed.hostname and parsed.port
+        valid = (parsed.scheme in ("https", "http") and parsed.hostname and parsed.port
                  and "@" not in parsed.netloc and not parsed.path and not parsed.query
                  and not parsed.fragment)
     except ValueError:
         valid = False
     if not valid:
-        print("Use an HTTPS URL with host and port, without credentials or path.", file=sys.stderr)
+        print("Use an HTTP(S) URL with host and port, without credentials or path.", file=sys.stderr)
+        return 2
+    if parsed.scheme == "http" and os.environ.get("ZIYIN_ALLOW_HTTP") != "1":
+        print("Plain HTTP requires explicit ZIYIN_ALLOW_HTTP=1 on a trusted isolated LAN.", file=sys.stderr)
         return 2
     command = sys.argv[1] if len(sys.argv) > 1 else "health"
     routes = {"health": "/api/health", "settings": "/api/settings", "tasks": "/api/tasks"}
-    if command == "task" and len(sys.argv) == 3:
+    if command == "health" and len(sys.argv) == 1:
+        pass
+    elif command == "task" and len(sys.argv) == 3:
         routes["task"] = "/api/tasks/" + quote(sys.argv[2], safe="")
     elif command == "files" and len(sys.argv) in (2, 3):
         routes["files"] = "/api/files" + ("?" + urlencode({"path": sys.argv[2]}) if len(sys.argv) == 3 else "")
@@ -42,7 +47,7 @@ def main() -> int:
         print("Usage: ziyin_client.py health|settings|tasks|task ID|files [relative-path]", file=sys.stderr)
         return 2
     context = ssl.create_default_context(cafile=os.environ.get("ZIYIN_CA_FILE") or None)
-    opener = build_opener(HTTPSHandler(context=context), NoRedirect())
+    opener = build_opener(HTTPSHandler(context=context), HTTPHandler(), NoRedirect())
     request = Request(base + routes[command], headers={"Authorization": "Bearer " + key})
     try:
         with opener.open(request, timeout=30) as response:

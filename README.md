@@ -5,7 +5,7 @@
 ## 配置
 
 1. 在 AstrBot 插件管理器使用 GitHub 仓库地址：`https://github.com/EisonMe/astrbot_plugin_ziyin_client`。
-2. 在插件配置填写 `base_url`，例如 `https://192.168.1.100:17643`。这里必须是 AstrBot 主机可访问的 Windows LAN/VPN 地址。`localhost` 只在 AstrBot 与 Windows 客户端同机时适用。
+2. 在插件配置填写 `base_url`，例如 `https://192.168.1.100:17643`。这里必须是 AstrBot 主机可访问、且 Windows 当前网卡实际拥有的 LAN/VPN IP；服务端 Host 校验不接受任意 DNS 别名。`localhost` 只在 AstrBot 与 Windows 客户端同机时适用。
 3. 在紫音客户端 WebUI/托盘的受信任管理操作中获取 API Key，放入插件密钥字段。密钥仅以 Bearer Header 发送，不写日志。
 4. 默认 TLS 证书和主机名验证开启。若使用安装器生成的自签名证书，在受信任通道取得 `server.cer`，核对指纹后运行 `openssl x509 -inform DER -in server.cer -out server.pem`，把 `server.pem` 的绝对路径填入 AstrBot 主机上的 `ca_file`；地址须匹配证书 SAN 中的安装时 IPv4。指纹只能作为额外校验，不能取代 CA。不要关闭验证。明文 HTTP 默认关闭。
 5. 默认只允许私聊，群聊关闭；文件写入关闭，桌面控制关闭。仅 AstrBot 管理员或明确列入 `allowed_users` 的账号可调用。写文件还需显式启用，并始终仅限管理员。

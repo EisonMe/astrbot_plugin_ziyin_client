@@ -7,7 +7,7 @@ description: Securely inspect a paired ZiYin Windows remote client over its auth
 
 Use `scripts/ziyin_client.py` with `ZIYIN_BASE_URL` and `ZIYIN_API_KEY` supplied by the user through the host's secure environment or secret manager. Never put the key in a command argument, skill file, repository, URL, or log. The script uses Python's standard library and enforces TLS certificate and hostname verification; for a private CA set `ZIYIN_CA_FILE` to a trusted PEM file.
 
-`localhost` refers to the agent's own machine. Configure an address reachable from the agent, normally `https://<Windows-LAN-or-VPN-IP>:17643`. Do not expose this service directly to the public Internet. For self-signed certificates, trust the CA and use a hostname present in the certificate. Do not disable certificate verification.
+`localhost` refers to the agent's own machine. Configure an address reachable from the agent, normally `https://<Windows-LAN-or-VPN-IP>:17643`. The service accepts its current network-interface IP in the HTTP Host header; a DNS alias alone is insufficient. Do not expose this service directly to the public Internet. For self-signed certificates, trust the certificate as CA and use an IP present in its SAN. Do not disable certificate verification. Plain HTTP requires the user's explicit choice of a trusted isolated LAN and `ZIYIN_ALLOW_HTTP=1`.
 
 Read-only commands:
 

@@ -48,7 +48,7 @@ def clip(text: str, limit: int) -> tuple[str, bool]:
     return text[:limit], True
 
 
-@register("astrbot_plugin_ziyin_client", "EisonMe", "紫音 Windows 客户端 LAN API 桥", "0.2.0")
+@register("astrbot_plugin_ziyin_client", "EisonMe", "紫音 Windows 客户端 LAN API 桥", "0.2.1")
 class ZiYinClientPlugin(Star):
     """在聊天里驱动已配对的 Windows 客户端。"""
 
