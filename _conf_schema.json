@@ -27,7 +27,7 @@
     "description": "证书指纹（SHA256）",
     "type": "string",
     "default": "",
-    "hint": "未配置 ca_file 时可用指纹固定证书，格式 AB:CD:... 或 64 位十六进制。填了指纹就不再校验主机名，只认这个证书。"
+    "hint": "可选的额外证书指纹校验，格式 AB:CD:... 或 64 位十六进制。仍须配置可信 CA/证书并通过主机名校验；指纹不能代替 TLS 验证。"
   },
   "allow_insecure_http": {
     "description": "允许明文 HTTP",
@@ -81,7 +81,7 @@
     "description": "允许文件写入和删除",
     "type": "bool",
     "default": false,
-    "hint": "关闭时只能列目录和下载。上传会覆盖同名文件，删除不可恢复。"
+    "hint": "关闭时只能列目录和下载。上传会覆盖同名文件，删除不可恢复；启用后仍仅限管理员。"
   },
   "max_output_chars": {
     "description": "单次返回的最大字符数",

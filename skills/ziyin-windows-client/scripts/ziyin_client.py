@@ -1,9 +1,19 @@
 #!/usr/bin/env python3
-"""Read-only ZiYin Windows client API helper. Requires requests."""
+"""Read-only ZiYin client API helper using Python's standard library."""
 from __future__ import annotations
 import os
+import ssl
 import sys
-import requests
+from urllib.error import HTTPError, URLError
+from urllib.parse import quote, urlencode, urlsplit
+from urllib.request import HTTPRedirectHandler, HTTPSHandler, Request, build_opener
+
+
+class NoRedirect(HTTPRedirectHandler):
+    """Never forward a Bearer key to a redirected endpoint."""
+
+    def redirect_request(self, request, fp, code, msg, headers, newurl):
+        return None
 
 
 def main() -> int:
@@ -12,39 +22,37 @@ def main() -> int:
     if not base or not key:
         print("Set ZIYIN_BASE_URL and ZIYIN_API_KEY in a secure environment.", file=sys.stderr)
         return 2
-    if not base.startswith("https://"):
-        print("HTTPS is required; configure a trusted CA instead of disabling TLS verification.", file=sys.stderr)
+    try:
+        parsed = urlsplit(base)
+        valid = (parsed.scheme == "https" and parsed.hostname and parsed.port
+                 and "@" not in parsed.netloc and not parsed.path and not parsed.query
+                 and not parsed.fragment)
+    except ValueError:
+        valid = False
+    if not valid:
+        print("Use an HTTPS URL with host and port, without credentials or path.", file=sys.stderr)
         return 2
-    ca = os.environ.get("ZIYIN_CA_FILE") or True
     command = sys.argv[1] if len(sys.argv) > 1 else "health"
-    routes = {
-        "health": ("GET", "/api/health"),
-        "settings": ("GET", "/api/settings"),
-        "tasks": ("GET", "/api/tasks"),
-    }
+    routes = {"health": "/api/health", "settings": "/api/settings", "tasks": "/api/tasks"}
     if command == "task" and len(sys.argv) == 3:
-        routes["task"] = ("GET", "/api/tasks/" + requests.utils.quote(sys.argv[2], safe=""))
-    elif command == "files":
-        routes["files"] = ("GET", "/api/files")
-    elif command not in routes and command != "task":
+        routes["task"] = "/api/tasks/" + quote(sys.argv[2], safe="")
+    elif command == "files" and len(sys.argv) in (2, 3):
+        routes["files"] = "/api/files" + ("?" + urlencode({"path": sys.argv[2]}) if len(sys.argv) == 3 else "")
+    elif command not in routes or len(sys.argv) != 2:
         print("Usage: ziyin_client.py health|settings|tasks|task ID|files [relative-path]", file=sys.stderr)
         return 2
-    if command not in routes:
-        print("task requires an ID", file=sys.stderr)
-        return 2
-    params = {"path": sys.argv[2]} if command == "files" and len(sys.argv) > 2 else None
-    method, path = routes[command]
+    context = ssl.create_default_context(cafile=os.environ.get("ZIYIN_CA_FILE") or None)
+    opener = build_opener(HTTPSHandler(context=context), NoRedirect())
+    request = Request(base + routes[command], headers={"Authorization": "Bearer " + key})
     try:
-        response = requests.request(
-            method, base + path, params=params,
-            headers={"Authorization": "Bearer " + key},
-            timeout=(5, 30), verify=ca, allow_redirects=False,
-        )
-        response.raise_for_status()
-        print(response.text)
-        return 0
-    except requests.RequestException as exc:
-        print(f"Request failed ({exc.__class__.__name__}); check network, endpoint and trusted TLS.", file=sys.stderr)
+        with opener.open(request, timeout=30) as response:
+            payload = response.read(1024 * 1024 + 1)
+            if len(payload) > 1024 * 1024:
+                raise ValueError("response exceeds 1 MiB")
+            print(payload.decode("utf-8"))
+            return 0
+    except (HTTPError, URLError, OSError, UnicodeError, ValueError) as exc:
+        print(f"Request failed ({exc.__class__.__name__}); check endpoint, network and trusted TLS.", file=sys.stderr)
         return 1
 
 

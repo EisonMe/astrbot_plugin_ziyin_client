@@ -6,7 +6,6 @@
 from __future__ import annotations
 
 import json
-import os
 import sys
 import unittest
 from pathlib import Path
@@ -14,7 +13,6 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
 from ziyin_api import (  # noqa: E402
-    ClientError,
     ZiYinClient,
     build_ssl_context,
     normalize_base_url,
@@ -48,6 +46,11 @@ class BaseUrlTests(unittest.TestCase):
     def test_rejects_empty(self) -> None:
         with self.assertRaises(ValueError):
             normalize_base_url("   ")
+
+    def test_rejects_embedded_credentials_or_missing_port(self) -> None:
+        for value in ("https://name:key@host:17643", "https://host"):
+            with self.subTest(value=value), self.assertRaises(ValueError):
+                normalize_base_url(value)
 
 
 class PinTests(unittest.TestCase):

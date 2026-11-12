@@ -41,6 +41,8 @@ def normalize_base_url(raw: str) -> str:
         raise ValueError("客户端地址必须以 https:// 或 http:// 开头。")
     if not parts.hostname:
         raise ValueError("客户端地址缺少主机名或 IP。")
+    if "@" in parts.netloc or not parts.port:
+        raise ValueError("客户端地址必须带端口，且不能包含账号密码。")
     if parts.path not in ("", "/") or parts.query or parts.fragment:
         raise ValueError("客户端地址不能带路径、查询串或片段。")
     return f"{parts.scheme}://{parts.netloc}"
@@ -201,6 +203,8 @@ class ZiYinClient:
                 allow_redirects=allow_redirect,
             ) as response:
                 await self._verify_pin(response)
+                if 300 <= response.status < 400:
+                    raise ClientError("服务端返回重定向；请检查客户端地址。")
                 if expect_bytes and response.status < 400:
                     return await response.read()
                 body = await response.text(errors="replace")
@@ -325,6 +329,10 @@ class ZiYinClient:
             raw_body=content,
             content_type="application/octet-stream",
         )
+
+    async def delete_file(self, path: str) -> Any:
+        """删除文件根目录中的单个文件。"""
+        return await self.request("DELETE", "/api/files", params={"path": path})
 
     async def screenshot(self) -> bytes:
         """抓取本机普通桌面截图。"""
